@@ -82,3 +82,20 @@ class BlockchainManager:
             return result
         except Exception as e:
             return {"error": str(e)}
+
+    def list_nfts(self, assets):
+        """
+        List NFTs based on the assets provided by KoiosAPI
+        """
+        nfts = []
+        for asset in assets:
+            # Fetch additional details for each asset if needed
+            # For now, we'll just use the information from the assets list
+            nft = {
+                "name": asset.get("asset_name", "Unknown"),
+                "policy_id": asset.get("policy_id", "Unknown"),
+                "asset_name": asset.get("asset_name", "Unknown"),
+                "quantity": asset.get("quantity", 0)
+            }
+            nfts.append(nft)
+        return nfts

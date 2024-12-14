@@ -38,29 +38,33 @@ def mint(asset_name, metadata, image_url, amount):
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
 
-@cli.command(name="list_nfts")
+@cli.command()
 def list_nfts():
-    """List all NFTs in the wallet."""
+    """List all NFTs in the wallet"""
     try:
         koios_api = KoiosAPI(Config.API_BASE_URL)
+        blockchain_manager = BlockchainManager(koios_api, Config.NETWORK)
+        
+        # Get account assets from KoiosAPI
         assets = koios_api.get_account_assets(Config.WALLET_ADDRESS)
-
-        # Kiểm tra dữ liệu trả về
-        if not isinstance(assets, list):
-            raise ValueError(f"API response is not a list. Received: {type(assets)}")
-
-        if not assets:
-            click.echo("No NFTs found in wallet")
-            return
-
-        for asset in assets:
-            if not isinstance(asset, dict):
-                raise ValueError(f"Unexpected asset format: {asset}")
-            click.echo(f"Asset Name: {asset['asset_name']}, Quantity: {asset['quantity']}")
-
+        
+        # Get detailed NFT information from BlockchainManager
+        nfts = blockchain_manager.list_nfts(assets)
+        
+        if not nfts:
+            click.echo("No NFTs found in the wallet.")
+        else:
+            for nft in nfts:
+                click.echo(f"Name: {nft['name']}")
+                click.echo(f"Policy ID: {nft['policy_id']}")
+                click.echo(f"Asset Name: {nft['asset_name']}")
+                click.echo(f"Quantity: {nft['quantity']}")
+                click.echo("---")
+        
+        return 0  # Ensure successful exit
     except Exception as e:
-        click.echo(f"Error: {str(e)}")
-        raise SystemExit(1)
+        click.echo(f"Error: {str(e)}", err=True)
+        return 1  # Ensure error exit
 
 @cli.command()
 @click.option('--asset-name', required=True, help='Name of the NFT asset to sell')

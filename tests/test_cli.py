@@ -5,6 +5,14 @@ from src.config import Config
 from src.api.koios import KoiosAPI
 from unittest.mock import patch, MagicMock
 
+@pytest.fixture
+def mock_blockchain(monkeypatch):
+    mock = MagicMock()
+    # Mock the blockchain API client
+    with patch('src.api.blockchain.BlockchainManager') as mock_api:
+        mock_api.return_value = mock
+        yield mock
+
 @patch("src.nft.utils.requests.head")
 @patch("src.api.blockchain.BlockchainManager.mint_nft", return_value={"tx_hash": "mock_hash"})
 @patch("src.api.koios.KoiosAPI", return_value=MagicMock())
@@ -20,32 +28,42 @@ def test_mint_command(mock_koios, mock_mint, mock_head, monkeypatch):
     assert result.exit_code == 0
     assert "NFT minted successfully" in result.output
 
-@patch("src.api.koios.KoiosAPI.get_account_assets", return_value=[{"asset_name": "TestNFT", "quantity": 2}])
-def test_list_nfts_command(mock_koios_class, monkeypatch):
-    # Mock instance của KoiosAPI
-    mock_instance = MagicMock()
-    mock_instance.get_account_assets.return_value = [
-        {"asset_name": "TestNFT", "quantity": 2}
+@patch("src.api.koios.KoiosAPI.get_account_assets")
+@patch("src.api.blockchain.BlockchainManager.list_nfts")
+def test_list_nfts_command(mock_list_nfts, mock_get_account_assets):
+    # Mock the KoiosAPI.get_account_assets method
+    mock_get_account_assets.return_value = [
+        {"asset_name": "TestAsset1", "policy_id": "test_policy_1", "quantity": 1},
+        {"asset_name": "TestAsset2", "policy_id": "test_policy_2", "quantity": 1}
     ]
-    # Gán mock instance trả về khi KoiosAPI được khởi tạo
-    mock_koios_class.return_value = mock_instance
 
-    # Mock Config variables
-    monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
-    monkeypatch.setattr(Config, "API_BASE_URL", "https://preview.koios.rest/api/v1")
-
-    # Thực thi CLI lệnh list_nfts
+    # Mock the BlockchainManager.list_nfts method
+    mock_list_nfts.return_value = [
+        {
+            "name": "TestAsset1",
+            "policy_id": "test_policy_1",
+            "asset_name": "TestAsset1",
+            "quantity": 1
+        },
+        {
+            "name": "TestAsset2", 
+            "policy_id": "test_policy_2",
+            "asset_name": "TestAsset2",
+            "quantity": 1
+        }
+    ]
+    
     runner = CliRunner()
-    result = runner.invoke(cli, ["list_nfts"])
-
-    # In kết quả để kiểm tra
-    print(f"CLI Output: {result.output}")
-    print(f"Mock API Response: {mock_instance.get_account_assets.return_value}")
-
-    # Kiểm tra mã thoát và nội dung đầu ra
-    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code} and output: {result.output}"
-    assert "Asset Name: TestNFT" in result.output
-    assert "Quantity: 2" in result.output
+    result = runner.invoke(cli, ['list-nfts'])
+    
+    # Verify the command executed successfully
+    assert result.exit_code == 0
+    # Verify the expected output
+    assert "TestAsset1" in result.output
+    assert "test_policy_1" in result.output
+    assert "TestAsset2" in result.output
+    assert "test_policy_2" in result.output
+    assert "Quantity: 1" in result.output
 
 @patch("src.nft.sell.NFTSeller.list_for_sale", return_value={"asset_name": "TestNFT", "price": 1000000, "seller": "addr_test1..."})
 @patch("src.api.koios.KoiosAPI", return_value=MagicMock())
