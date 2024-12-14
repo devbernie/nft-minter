@@ -43,12 +43,12 @@ def list_nfts():
     """List all NFTs in the wallet."""
     try:
         koios_api = KoiosAPI(Config.API_BASE_URL)
-        response = koios_api.get_account_assets(Config.WALLET_ADDRESS)
-        if not response:
+        assets = koios_api.get_account_assets(Config.WALLET_ADDRESS)
+        if not assets:
             click.echo("No NFTs found in wallet")
             return
         
-        for asset in response:
+        for asset in assets:
             click.echo(f"Asset Name: {asset['asset_name']}, quantity: {asset['quantity']}")
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)

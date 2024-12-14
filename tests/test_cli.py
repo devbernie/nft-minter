@@ -2,6 +2,7 @@ import pytest
 from click.testing import CliRunner
 from src.cli import cli
 from src.config import Config
+from src.api.koios import KoiosAPI
 from unittest.mock import patch, MagicMock
 
 @patch("src.nft.utils.requests.head")
@@ -33,14 +34,9 @@ def test_list_nfts_command(mock_koios_class, monkeypatch):
     runner = CliRunner()
     result = runner.invoke(cli, ["list_nfts"])
     
-    # Debugging output
-    print("Output:", result.output)
-    print("Exit Code:", result.exit_code)
-    
     assert result.exit_code == 0
-    assert "TestNFT" in result.output
-    assert "quantity: 2" in result.output
-    
+    assert "Asset Name: TestNFT" in result.output  # Check for asset name
+    assert "quantity: 2" in result.output  # Check for quantity
     mock_instance.get_account_assets.assert_called_once_with(Config.WALLET_ADDRESS)
 
 @patch("src.nft.sell.NFTSeller.list_for_sale", return_value={"asset_name": "TestNFT", "price": 1000000, "seller": "addr_test1..."})
