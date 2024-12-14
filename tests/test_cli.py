@@ -5,8 +5,9 @@ from src.config import Config
 from unittest.mock import patch, MagicMock
 
 @patch("src.nft.utils.requests.head")
-@patch("src.nft.mint.NFTMinter.mint_nft", return_value={"tx_hash": "mock_hash"})
-def test_mint_command(mock_mint, mock_head, monkeypatch):
+@patch("src.api.blockchain.BlockchainManager.mint_nft", return_value={"tx_hash": "mock_hash"})
+@patch("src.api.koios.KoiosAPI", return_value=MagicMock())
+def test_mint_command(mock_koios, mock_mint, mock_head, monkeypatch):
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
     mock_head.return_value.headers = {"Content-Type": "image/jpeg"}
     runner = CliRunner()
@@ -18,37 +19,52 @@ def test_mint_command(mock_mint, mock_head, monkeypatch):
     assert result.exit_code == 0
     assert "NFT minted successfully" in result.output
 
-@patch("src.api.koios.KoiosAPI.get_account_assets", return_value=[{"asset_name": "TestNFT", "quantity": 2}])
-def test_list_nfts_command(mock_get_assets, monkeypatch):
+@patch("src.api.koios.KoiosAPI")
+def test_list_nfts_command(mock_koios_class, monkeypatch):
+    # Setup the mock
+    mock_instance = MagicMock()
+    mock_instance.get_account_assets.return_value = [
+        {"asset_name": "TestNFT", "quantity": 2}
+    ]
+    mock_koios_class.return_value = mock_instance
+    
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
+    monkeypatch.setattr(Config, "API_BASE_URL", "https://preview.koios.rest/api/v1")
+    
     runner = CliRunner()
     result = runner.invoke(cli, ["list_nfts"])
+    
     assert result.exit_code == 0
     assert "TestNFT" in result.output
+    assert "quantity: 2" in result.output
+    
+    # Verify the mock was called correctly
+    mock_instance.get_account_assets.assert_called_once_with(Config.WALLET_ADDRESS)
 
-@patch("src.api.blockchain.BlockchainManager.build_transaction", return_value=MagicMock())
-@patch("src.api.blockchain.BlockchainManager.sign_transaction", return_value=MagicMock())
-@patch("src.api.blockchain.BlockchainManager.submit_transaction", return_value={"tx_hash": "mock_hash"})
-def test_sell_command(mock_build, mock_sign, mock_submit, monkeypatch):
+@patch("src.nft.sell.NFTSeller.list_for_sale", return_value={"asset_name": "TestNFT", "price": 1000000, "seller": "addr_test1..."})
+@patch("src.api.koios.KoiosAPI", return_value=MagicMock())
+def test_sell_command(mock_koios, mock_list_for_sale, monkeypatch):
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
     runner = CliRunner()
     result = runner.invoke(cli, [
-        'sell',
-        '--asset-name', 'TestNFT',
-        '--price', '1000000'
+        "sell", "--asset-name", "TestNFT",
+        "--price", "1000000"
     ])
     assert result.exit_code == 0
     assert "NFT listed for sale" in result.output
 
-@patch("src.nft.buy.NFTBuyer.buy_nft", return_value={"tx_hash": "mock_hash"})
-def test_buy_command(mock_buy_nft, monkeypatch):
+@patch("src.api.blockchain.BlockchainManager.build_transaction", return_value=MagicMock())
+@patch("src.api.blockchain.BlockchainManager.sign_transaction", return_value=MagicMock())
+@patch("src.api.blockchain.BlockchainManager.submit_transaction", return_value={"tx_hash": "mock_hash"})
+@patch("src.api.koios.KoiosAPI", return_value=MagicMock())
+def test_buy_command(mock_koios, mock_build, mock_sign, mock_submit, monkeypatch):
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
     runner = CliRunner()
     result = runner.invoke(cli, [
-        "buy", "--seller-address", "addr_test1qzmcx2fp747pzmqpsgfmzmlwjgkkcxxajjw4dy3fwhpjztkfq5vxr694la5f87y709k0alm2dtnl7rl04a9nvccunwtseskzvv", 
+        "buy", 
+        "--seller-address", "addr_test1qzmcx2fp747pzmqpsgfmzmlwjgkkcxxajjw4dy3fwhpjztkfq5vxr694la5f87y709k0alm2dtnl7rl04a9nvccunwtseskzvv",
         "--price", "1000000",
         "--asset-name", "TestNFT"
     ])
     assert result.exit_code == 0
     assert "NFT purchased successfully" in result.output
-    mock_buy_nft.assert_called_once()

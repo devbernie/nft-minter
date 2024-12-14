@@ -9,12 +9,11 @@ class KoiosAPI:
 
     BASE_URL = os.getenv("API_BASE_URL")
 
-    def __init__(self):
-        # Initialize KoiosAPI
-        pass
+    def __init__(self, api_base_url="https://preview.koios.rest/api/v1"):
+        self.api_base_url = api_base_url
 
     def get_account_assets(self, address):
-        url = f"{self.BASE_URL}/account_assets"
+        url = f"{self.api_base_url}/account_assets"
         payload = {"_addresses": [address]}
         try:
             response = requests.post(url, json=payload)

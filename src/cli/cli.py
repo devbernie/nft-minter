@@ -43,13 +43,13 @@ def list_nfts():
     """List all NFTs in the wallet."""
     try:
         koios_api = KoiosAPI(Config.API_BASE_URL)
-        assets = koios_api.get_account_assets(Config.WALLET_ADDRESS)
-        if not assets:
+        response = koios_api.get_account_assets(Config.WALLET_ADDRESS)
+        if not response:
             click.echo("No NFTs found in wallet")
             return
         
-        for asset in assets:
-            click.echo(f"Asset Name: {asset['asset_name']}, Quantity: {asset['quantity']}")
+        for asset in response:
+            click.echo(f"Asset Name: {asset['asset_name']}, quantity: {asset['quantity']}")
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
 
@@ -59,13 +59,11 @@ def list_nfts():
 def sell(asset_name, price):
     """List an NFT for sale."""
     try:
-        koios_api = KoiosAPI(Config.API_BASE_URL)
-        blockchain_manager = BlockchainManager(koios_api, Config.NETWORK)
-        seller = NFTSeller(blockchain_manager)
+        seller = NFTSeller()
         
-        result = seller.list_nft_for_sale(Config.WALLET_ADDRESS, asset_name, price)
+        result = seller.list_for_sale(asset_name, price, Config.WALLET_ADDRESS)
         click.echo("NFT listed for sale")
-        click.echo(f"Transaction hash: {result['tx_hash']}")
+        click.echo(f"Transaction details: {result}")
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
 
