@@ -1,0 +1,8 @@
+click
+json
+requests
+re
+python-dotenv
+os
+pycardano
+pytest
