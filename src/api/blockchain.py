@@ -61,13 +61,11 @@ class BlockchainManager:
         except Exception as e:
             return {"error": str(e)}
 
-    def mint_nft(self, sender_address, signing_key, policy_id, asset_name, metadata, amount=1):
+    def mint_nft(self, sender_address, asset_name, metadata, amount=1):
         """
         Mint an NFT using a specific policy ID and metadata.
 
         :param sender_address: Address of the sender
-        :param signing_key: PaymentSigningKey of the sender
-        :param policy_id: Policy ID for the NFT
         :param asset_name: Name of the NFT asset
         :param metadata: Metadata for the NFT (dict)
         :param amount: Amount of NFTs to mint (default 1)
@@ -75,9 +73,11 @@ class BlockchainManager:
         """
         try:
             builder = TransactionBuilder(self.network)
-            builder.mint_asset(policy_id, asset_name, amount, metadata)
+            builder.mint = {asset_name: amount}  # Định nghĩa lượng mint
+            builder.metadata = metadata  # Gắn metadata
+
             transaction = builder.build(sender_address)
-            signed_transaction = transaction.sign([signing_key])
+            signed_transaction = transaction.sign([])  # Không cần signing key
             result = self.submit_transaction(signed_transaction)
             return result
         except Exception as e:

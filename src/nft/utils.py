@@ -32,7 +32,7 @@ def validate_image_url(image_url):
         "drive.google.com",
         "onedrive.live.com",
         "dropbox.com",
-        "imgur.com"
+        "i.imgur.com"
     ]
 
     # Check if the URL is from a valid domain
@@ -49,10 +49,10 @@ def validate_image_url(image_url):
         image_url = image_url.replace("?dl=0", "?dl=1")
     elif "onedrive.live.com" in image_url:
         image_url += "&download=1"
-    elif "imgur.com" in image_url:
+    elif "i.imgur.com" in image_url:
         # Ensure Imgur URLs point directly to an image file
-        if not re.search(r'\.(jpg|jpeg|png|gif|bmp|webp)$', image_url, re.IGNORECASE):
-            raise ValueError("Imgur URL must point directly to an image file.")
+        if not re.search(r'https://i\.imgur\.com/[\w]+\.(jpg|jpeg|png|gif|bmp|webp)$', image_url, re.IGNORECASE):
+            raise ValueError("Imgur URL must be in the format 'https://i.imgur.com/<file_id>.<file_type>' and point to a valid image file.")
 
     # Check if the URL points to an image by inspecting the content type
     try:

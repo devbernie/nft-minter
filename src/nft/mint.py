@@ -9,13 +9,11 @@ class NFTMinter:
     def __init__(self, blockchain_manager: BlockchainManager):
         self.blockchain_manager = blockchain_manager
 
-    def mint_nft(self, sender_address, signing_key, policy_id, asset_name, metadata, image_url=None, amount=1):
+    def mint_nft(self, sender_address, asset_name, metadata, image_url=None, amount=1):
         """
         Mint an NFT.
 
         :param sender_address: Address of the sender
-        :param signing_key: PaymentSigningKey of the sender
-        :param policy_id: Policy ID
         :param asset_name: Name of the NFT asset
         :param metadata: Metadata for the NFT
         :param image_url: URL of the image for the NFT (optional)
@@ -27,5 +25,5 @@ class NFTMinter:
             metadata["image"] = image_url
 
         return self.blockchain_manager.mint_nft(
-            sender_address, signing_key, policy_id, asset_name, metadata, amount
+            sender_address, asset_name, metadata, amount
         )

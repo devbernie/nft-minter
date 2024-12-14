@@ -8,6 +8,7 @@ from src.nft.buy import NFTBuyer
 from src.nft.sell import NFTSeller
 from src.api.blockchain import BlockchainManager
 from src.nft.utils import validate_image_url
+from src.api.koios import KoiosAPI
 from pycardano import PaymentSigningKey, Network
 
 # Load environment variables
@@ -26,21 +27,10 @@ def cli():
 def mint(asset_name, metadata, image_url, amount):
     """Mint a new NFT."""
     try:
-        # Load configuration from .env
-        wallet_address = os.getenv("WALLET_ADDRESS")
-        signing_key_path = os.getenv("SIGNING_KEY_PATH")
-        policy_id = os.getenv("POLICY_ID")
-        network = os.getenv("NETWORK")
-
-        blockchain_manager = BlockchainManager(None, network)
-        signing_key = PaymentSigningKey.load(signing_key_path)
-
-        # Validate metadata and mint NFT
-        minter = NFTMinter(blockchain_manager)
+        blockchain_manager = BlockchainManager(None, Config.NETWORK)
         metadata_dict = eval(metadata)  # Convert string input to dictionary
-        result = minter.mint_nft(
-            wallet_address, signing_key, policy_id,
-            asset_name, metadata_dict, image_url, amount
+        result = NFTMinter(blockchain_manager).mint_nft(
+            Config.WALLET_ADDRESS, asset_name, metadata_dict, image_url, amount
         )
         click.echo(f"NFT minted successfully: {result}")
     except Exception as e:
