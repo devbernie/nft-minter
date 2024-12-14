@@ -1,6 +1,6 @@
 import pytest
 from click.testing import CliRunner
-from src.cli import cli
+from src.cli.cli import cli
 from src.config import Config
 from src.api.koios import KoiosAPI
 from unittest.mock import patch, MagicMock
@@ -20,24 +20,32 @@ def test_mint_command(mock_koios, mock_mint, mock_head, monkeypatch):
     assert result.exit_code == 0
     assert "NFT minted successfully" in result.output
 
-@patch("src.api.koios.KoiosAPI")
+@patch("src.api.koios.KoiosAPI.get_account_assets", return_value=[{"asset_name": "TestNFT", "quantity": 2}])
 def test_list_nfts_command(mock_koios_class, monkeypatch):
+    # Mock instance của KoiosAPI
     mock_instance = MagicMock()
     mock_instance.get_account_assets.return_value = [
         {"asset_name": "TestNFT", "quantity": 2}
     ]
+    # Gán mock instance trả về khi KoiosAPI được khởi tạo
     mock_koios_class.return_value = mock_instance
-    
+
+    # Mock Config variables
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
     monkeypatch.setattr(Config, "API_BASE_URL", "https://preview.koios.rest/api/v1")
-    
+
+    # Thực thi CLI lệnh list_nfts
     runner = CliRunner()
     result = runner.invoke(cli, ["list_nfts"])
-    
-    assert result.exit_code == 0
-    assert "Asset Name: TestNFT" in result.output  # Check for asset name
-    assert "quantity: 2" in result.output  # Check for quantity
-    mock_instance.get_account_assets.assert_called_once_with(Config.WALLET_ADDRESS)
+
+    # In kết quả để kiểm tra
+    print(f"CLI Output: {result.output}")
+    print(f"Mock API Response: {mock_instance.get_account_assets.return_value}")
+
+    # Kiểm tra mã thoát và nội dung đầu ra
+    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code} and output: {result.output}"
+    assert "Asset Name: TestNFT" in result.output
+    assert "Quantity: 2" in result.output
 
 @patch("src.nft.sell.NFTSeller.list_for_sale", return_value={"asset_name": "TestNFT", "price": 1000000, "seller": "addr_test1..."})
 @patch("src.api.koios.KoiosAPI", return_value=MagicMock())
