@@ -13,6 +13,6 @@ def test_mint_nft(minter):
 
     result = minter.mint_nft(
         "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u", MagicMock(), "policy_id", "TestNFT",
-        {"name": "Test NFT"}, "https://imgur.com/CZwugry", 1
+        {"name": "Test NFT"}, "https://i.imgur.com/CZwugry.jpeg", 1
     )
     assert result["tx_hash"] == "mock_hash"

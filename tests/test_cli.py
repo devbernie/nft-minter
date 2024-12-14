@@ -8,7 +8,7 @@ def test_mint_command():
         'mint',
         '--asset-name', 'TestNFT',
         '--metadata', '{"name": "Test NFT", "description": "A test NFT"}',
-        '--image-url', 'https://imgur.com/CZwugry',
+        '--image-url', 'https://i.imgur.com/CZwugry.jpeg',
         '--amount', '1'
     ])
     assert result.exit_code == 0
