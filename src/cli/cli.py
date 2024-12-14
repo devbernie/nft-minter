@@ -84,5 +84,10 @@ def buy(seller_address, price, asset_name):
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
 
+cli.add_command(mint)
+cli.add_command(list_nfts)
+cli.add_command(sell)
+cli.add_command(buy)
+
 if __name__ == '__main__':
     cli()
