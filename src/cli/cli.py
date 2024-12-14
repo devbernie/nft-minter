@@ -9,6 +9,7 @@ from src.nft.sell import NFTSeller
 from src.api.blockchain import BlockchainManager
 from src.nft.utils import validate_image_url
 from src.api.koios import KoiosAPI
+from src.config import Config
 from pycardano import PaymentSigningKey, Network
 
 # Load environment variables
