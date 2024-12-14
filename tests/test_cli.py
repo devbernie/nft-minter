@@ -21,7 +21,6 @@ def test_mint_command(mock_koios, mock_mint, mock_head, monkeypatch):
 
 @patch("src.api.koios.KoiosAPI")
 def test_list_nfts_command(mock_koios_class, monkeypatch):
-    # Setup the mock
     mock_instance = MagicMock()
     mock_instance.get_account_assets.return_value = [
         {"asset_name": "TestNFT", "quantity": 2}
@@ -34,11 +33,14 @@ def test_list_nfts_command(mock_koios_class, monkeypatch):
     runner = CliRunner()
     result = runner.invoke(cli, ["list_nfts"])
     
+    # Debugging output
+    print("Output:", result.output)
+    print("Exit Code:", result.exit_code)
+    
     assert result.exit_code == 0
     assert "TestNFT" in result.output
     assert "quantity: 2" in result.output
     
-    # Verify the mock was called correctly
     mock_instance.get_account_assets.assert_called_once_with(Config.WALLET_ADDRESS)
 
 @patch("src.nft.sell.NFTSeller.list_for_sale", return_value={"asset_name": "TestNFT", "price": 1000000, "seller": "addr_test1..."})
