@@ -4,9 +4,8 @@ from src.config import Config
 from src.api.koios import KoiosAPI
 from src.api.blockchain import BlockchainManager
 from src.nft.mint import NFTMinter
-from src.nft.list import NFTLister
-from src.nft.buy import NFTBuyer
 from src.nft.sell import NFTSeller
+from src.nft.buy import NFTBuyer
 
 @click.group()
 def cli():
@@ -18,9 +17,15 @@ def cli():
 @click.option('--metadata', required=True, help='Metadata for the NFT (JSON string or file path)')
 @click.option('--image-url', required=True, help='URL of the image for the NFT')
 @click.option('--amount', default=1, help='Amount of NFTs to mint')
-def mint(asset_name, metadata, image_url, amount):
+@click.option('--wallet-address', help='Wallet address to mint the NFT to')
+def mint(asset_name, metadata, image_url, amount, wallet_address):
     """Mint a new NFT."""
     try:
+        wallet_address = wallet_address or Config.WALLET_ADDRESS
+        if not wallet_address:
+            click.echo("Error: No wallet address provided. Please specify --wallet-address or set it in the config.", err=True)
+            return 1
+
         # Check if metadata is a file path
         if metadata.endswith('.json'):
             with open(metadata, 'r') as f:
@@ -54,7 +59,7 @@ def mint(asset_name, metadata, image_url, amount):
         minter = NFTMinter(blockchain_manager)
         
         result = minter.mint_nft(
-            Config.WALLET_ADDRESS,
+            wallet_address,
             asset_name,
             standardized_metadata,
             image_url,
@@ -62,10 +67,13 @@ def mint(asset_name, metadata, image_url, amount):
         )
         click.echo("NFT minted successfully")
         click.echo(f"Transaction hash: {result['tx_hash']}")
+        return 0
     except json.JSONDecodeError as e:
         click.echo(f"Error decoding JSON: {str(e)}", err=True)
+        return 1
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
+        return 1
 
 @cli.command()
 def list_nfts():
@@ -75,7 +83,7 @@ def list_nfts():
         blockchain_manager = BlockchainManager(koios_api, Config.NETWORK)
         
         # Get account assets from KoiosAPI
-        assets = koios_api.get_account_assets(Config.WALLET_ADDRESS)
+        assets = koios_api.get_address_assets(Config.WALLET_ADDRESS)
         
         # Get detailed NFT information from BlockchainManager
         nfts = blockchain_manager.list_nfts(assets)
@@ -90,10 +98,10 @@ def list_nfts():
                 click.echo(f"Quantity: {nft['quantity']}")
                 click.echo("---")
         
-        return 0  # Ensure successful exit
+        return 0
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
-        return 1  # Ensure error exit
+        return 1
 
 @cli.command()
 @click.option('--asset-name', required=True, help='Name of the NFT asset to sell')
@@ -106,8 +114,10 @@ def sell(asset_name, price):
         result = seller.list_for_sale(asset_name, price, Config.WALLET_ADDRESS)
         click.echo("NFT listed for sale")
         click.echo(f"Transaction details: {result}")
+        return 0
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
+        return 1
 
 @cli.command()
 @click.option('--seller-address', required=True, help='Address of the NFT seller')
@@ -123,13 +133,10 @@ def buy(seller_address, price, asset_name):
         result = buyer.buy_nft(Config.WALLET_ADDRESS, seller_address, asset_name, price)
         click.echo("NFT purchased successfully")
         click.echo(f"Transaction hash: {result['tx_hash']}")
+        return 0
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
-
-cli.add_command(mint)
-cli.add_command(list_nfts)
-cli.add_command(sell)
-cli.add_command(buy)
+        return 1
 
 if __name__ == '__main__':
     cli()

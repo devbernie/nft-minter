@@ -1,15 +1,13 @@
 {
-    "name": "ExampleNFT",
-    "description": "This is an example NFT created for testing purposes.",
+    "name": "MyNFT",
     "image": "https://i.imgur.com/CZwugry.jpeg",
-    "attributes": [
+    "mediaType": "image/jpeg",
+    "files": [
         {
-            "trait_type": "Background",
-            "value": "Blue"
-        },
-        {
-            "trait_type": "Eyes",
-            "value": "Big"
+            "name": "MyNFT",
+            "src": "https://i.imgur.com/CZwugry.jpeg",
+            "mediaType": "image/jpeg"
         }
-    ]
+    ],
+    "description": "This is my first NFT on Cardano"
 }

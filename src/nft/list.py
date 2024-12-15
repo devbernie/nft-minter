@@ -15,4 +15,4 @@ class NFTLister:
         :param wallet_address: Wallet address to query
         :return: List of NFTs or an error message
         """
-        return self.koios_api.get_account_assets(wallet_address)
+        return self.koios_api.get_address_assets(wallet_address)

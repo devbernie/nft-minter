@@ -7,12 +7,12 @@ from unittest.mock import patch
 def koios_api():
     return KoiosAPI()
 
-def test_get_account_assets(koios_api):
+def test_get_address_assets(koios_api):
     with patch("requests.post") as mock_post:
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = [{"asset": "asset_1"}]
 
-        result = koios_api.get_account_assets("addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
+        result = koios_api.get_address_assets("addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
         assert len(result) == 1
         assert result[0]["asset"] == "asset_1"
 

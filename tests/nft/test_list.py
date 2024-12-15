@@ -9,7 +9,7 @@ def lister():
     return NFTLister(koios_api)
 
 def test_list_nfts(lister):
-    lister.koios_api.get_account_assets.return_value = [
+    lister.koios_api.get_address_assets.return_value = [
         {"asset_name": "TestNFT", "quantity": 1}
     ]
 

@@ -13,26 +13,33 @@ class KoiosAPI:
     def __init__(self, api_base_url=None):
         self.api_base_url = api_base_url or self.BASE_URL
 
-    def get_account_assets(self, address):
+    def get_address_assets(self, address):
         """
         Fetch the list of assets (NFTs, tokens) held by a given wallet address.
-
-        :param address: Cardano wallet address (string)
-        :return: List of assets (dict) or error message.
         """
-        # Simulated mock response for testing
-        if self.api_base_url == "mock":
-            return [{"asset_name": "MockNFT", "quantity": 1}]
-
-        url = f"{self.api_base_url}/account_assets"
-        payload = {"_addresses": [address]}
-
         try:
-            response = requests.post(url, json=payload)
+            url = f"{self.api_base_url}/address_assets"
+            payload = {"_addresses": [address]}
+            
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            response = requests.post(url, json=payload, headers=headers)
             response.raise_for_status()
-            return response.json()
+            
+            assets = response.json()
+            if not isinstance(assets, list):
+                print(f"Unexpected response format: {assets}")
+                return []
+            
+            return assets
         except requests.exceptions.RequestException as e:
-            return {"error": str(e)}
+            print(f"Error fetching assets: {str(e)}")
+            print(f"Response status code: {e.response.status_code if e.response else 'No response'}")
+            print(f"Response content: {e.response.text if e.response else 'No response content'}")
+            return []
 
     def submit_transaction(self, cbor_hex):
         """

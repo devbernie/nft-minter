@@ -88,15 +88,21 @@ class BlockchainManager:
         """
         List NFTs based on the assets provided by KoiosAPI
         """
+        if not isinstance(assets, list):
+            print(f"Warning: Expected list of assets, got {type(assets)}")
+            return []
+        
         nfts = []
         for asset in assets:
-            # Fetch additional details for each asset if needed
-            # For now, we'll just use the information from the assets list
+            if not isinstance(asset, dict):
+                print(f"Warning: Invalid asset format: {asset}")
+                continue
+            
             nft = {
-                "name": asset.get("asset_name", "Unknown"),
-                "policy_id": asset.get("policy_id", "Unknown"),
-                "asset_name": asset.get("asset_name", "Unknown"),
-                "quantity": asset.get("quantity", 0)
+                "name": str(asset.get("asset_name", "Unknown")),
+                "policy_id": str(asset.get("policy_id", "Unknown")),
+                "asset_name": str(asset.get("asset_name", "Unknown")),
+                "quantity": int(asset.get("quantity", 0))
             }
             nfts.append(nft)
         return nfts
@@ -108,4 +114,15 @@ class BlockchainManager:
     def create_minting_transaction(self, wallet_address, asset_name, metadata, policy_id, amount):
         # This is where you would implement the actual minting logic
         # For now, we'll just return a mock transaction hash
-        return f"mock_tx_hash_{uuid.uuid4()}"
+        tx_hash = f"mock_tx_hash_{uuid.uuid4()}"
+        
+        # In a real implementation, you would:
+        # 1. Create a transaction that mints the NFT
+        # 2. Assign the minted NFT to the specified wallet_address
+        # 3. Submit the transaction to the blockchain
+        
+        print(f"Minting {amount} NFT(s) '{asset_name}' to address: {wallet_address}")
+        print(f"Policy ID: {policy_id}")
+        print(f"Transaction hash: {tx_hash}")
+        
+        return tx_hash

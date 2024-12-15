@@ -33,11 +33,11 @@ def test_mint_command(mock_koios, mock_create_minting_transaction, mock_head, mo
     assert "Transaction hash: mock_hash" in result.output
     mock_create_minting_transaction.assert_called_once()
 
-@patch("src.api.koios.KoiosAPI.get_account_assets")
+@patch("src.api.koios.KoiosAPI.get_address_assets")
 @patch("src.api.blockchain.BlockchainManager.list_nfts")
-def test_list_nfts_command(mock_list_nfts, mock_get_account_assets):
-    # Mock the KoiosAPI.get_account_assets method
-    mock_get_account_assets.return_value = [
+def test_list_nfts_command(mock_list_nfts, mock_get_address_assets):
+    # Mock the KoiosAPI.get_address_assets method
+    mock_get_address_assets.return_value = [
         {"asset_name": "TestAsset1", "policy_id": "test_policy_1", "quantity": 1},
         {"asset_name": "TestAsset2", "policy_id": "test_policy_2", "quantity": 1}
     ]
