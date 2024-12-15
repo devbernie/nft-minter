@@ -124,13 +124,14 @@ def sell(asset_name, price):
 @click.option('--price', required=True, type=int, help='Price in lovelace')
 @click.option('--asset-name', required=True, help='Name of the NFT asset to buy')
 def buy(seller_address, price, asset_name):
-    """Buy an NFT."""
     try:
         koios_api = KoiosAPI(Config.API_BASE_URL)
         blockchain_manager = BlockchainManager(koios_api, Config.NETWORK)
         buyer = NFTBuyer(blockchain_manager)
-        
-        result = buyer.buy_nft(Config.WALLET_ADDRESS, seller_address, asset_name, price)
+
+        result = buyer.buy_nft(Config.WALLET_ADDRESS, seller_address, Config.SIGNING_KEY, price)
+        if not result or "tx_hash" not in result:
+            raise Exception("Transaction failed or tx_hash is missing")
         click.echo("NFT purchased successfully")
         click.echo(f"Transaction hash: {result['tx_hash']}")
         return 0

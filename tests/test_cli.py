@@ -87,7 +87,10 @@ def test_sell_command(mock_koios, mock_list_for_sale, monkeypatch):
 @patch("src.api.blockchain.BlockchainManager.submit_transaction", return_value={"tx_hash": "mock_hash"})
 @patch("src.api.koios.KoiosAPI", return_value=MagicMock())
 def test_buy_command(mock_koios, mock_build, mock_sign, mock_submit, monkeypatch):
+    # Mock necessary Config attributes
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
+    monkeypatch.setattr(Config, "SIGNING_KEY", "mock_signing_key")
+
     runner = CliRunner()
     result = runner.invoke(cli, [
         "buy", 
@@ -95,5 +98,6 @@ def test_buy_command(mock_koios, mock_build, mock_sign, mock_submit, monkeypatch
         "--price", "1000000",
         "--asset-name", "TestNFT"
     ])
+    
     assert result.exit_code == 0
     assert "NFT purchased successfully" in result.output

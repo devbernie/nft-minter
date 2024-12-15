@@ -4,6 +4,8 @@ from src.api.koios import KoiosAPI
 from pycardano import TransactionBuilder, PaymentSigningKey, Transaction, TransactionOutput, Network
 from dotenv import load_dotenv
 import uuid
+from src.config import Config
+import cbor2
 
 # Load environment variables
 load_dotenv()
@@ -18,49 +20,44 @@ class BlockchainManager:
         self.network = network
 
     def build_transaction(self, sender_address, receiver_address, amount_lovelace):
-        """
-        Build a transaction to send ADA or other assets.
-
-        :param sender_address: Address of the sender
-        :param receiver_address: Address of the receiver
-        :param amount_lovelace: Amount of ADA to send (in lovelace)
-        :return: Unsigned Transaction object
-        """
         try:
-            builder = TransactionBuilder(self.network)
+            if not sender_address or not receiver_address or amount_lovelace <= 0:
+                raise ValueError("Invalid input for building a transaction")
+
+            builder = self.TransactionBuilder(self.network)
             builder.add_output(TransactionOutput(receiver_address, amount_lovelace))
             transaction = builder.build(sender_address)
             return transaction
         except Exception as e:
-            return {"error": str(e)}
+            raise Exception(f"Error building transaction: {e}")
 
-    def sign_transaction(self, transaction: Transaction, signing_key: PaymentSigningKey):
+    def sign_transaction(self, transaction, signing_key):
         """
         Sign a transaction using the sender's signing key.
 
         :param transaction: Unsigned Transaction object
         :param signing_key: PaymentSigningKey of the sender
-        :return: Signed Transaction object
+        :return: Serialized signed transaction as CBOR hex
         """
+        # Use a library method to sign the transaction
         try:
-            signed_transaction = transaction.sign([signing_key])
-            return signed_transaction
+            signed_transaction = transaction.sign(signing_key)  # Replace with library-specific signing logic
+            cbor_serialized = signed_transaction.to_cbor_hex()  # Serialize signed transaction to CBOR hex
+            return cbor_serialized
         except Exception as e:
-            return {"error": str(e)}
+            raise Exception(f"Error signing transaction: {e}")
 
-    def submit_transaction(self, signed_transaction: Transaction):
+    def submit_transaction(self, signed_transaction):
         """
         Submit a signed transaction to the blockchain.
 
         :param signed_transaction: Signed Transaction object
         :return: Transaction ID or error message
         """
-        try:
-            cbor_hex = signed_transaction.to_cbor_hex()
-            result = self.koios_api.submit_transaction(cbor_hex)
-            return result
-        except Exception as e:
-            return {"error": str(e)}
+        response = self.koios_api.submit_transaction(signed_transaction.to_cbor_hex())
+        if response.get("error"):
+            raise Exception(f"Transaction submission failed: {response['error']}")
+        return {"tx_hash": response["tx_hash"]}
 
     def mint_nft(self, sender_address, asset_name, metadata, amount=1):
         """
