@@ -1,3 +1,4 @@
 .env
 __pycache__/
 *.pyc
+src/nft_minter.egg-info

@@ -14,19 +14,24 @@ def mock_blockchain(monkeypatch):
         yield mock
 
 @patch("src.nft.utils.requests.head")
-@patch("src.api.blockchain.BlockchainManager.mint_nft", return_value={"tx_hash": "mock_hash"})
+@patch("src.api.blockchain.BlockchainManager.create_minting_transaction")
 @patch("src.api.koios.KoiosAPI", return_value=MagicMock())
-def test_mint_command(mock_koios, mock_mint, mock_head, monkeypatch):
+def test_mint_command(mock_koios, mock_create_minting_transaction, mock_head, monkeypatch):
     monkeypatch.setattr(Config, "WALLET_ADDRESS", "addr_test1qp28mg795hwlnptmdyr47zcrc87m8kk0pwvxrwrw24ppdzzquca5pnk4ew6068z6wu4tc9ee2rr2rnn06spkkvj0llqq7fnt8u")
     mock_head.return_value.headers = {"Content-Type": "image/jpeg"}
+    mock_create_minting_transaction.return_value = "mock_hash"
+
     runner = CliRunner()
     result = runner.invoke(cli, [
         "mint", "--asset-name", "TestNFT",
         "--metadata", '{"name": "Test NFT"}',
         "--image-url", "https://i.imgur.com/CZwugry.jpeg", "--amount", "1"
     ])
+    
     assert result.exit_code == 0
     assert "NFT minted successfully" in result.output
+    assert "Transaction hash: mock_hash" in result.output
+    mock_create_minting_transaction.assert_called_once()
 
 @patch("src.api.koios.KoiosAPI.get_account_assets")
 @patch("src.api.blockchain.BlockchainManager.list_nfts")
